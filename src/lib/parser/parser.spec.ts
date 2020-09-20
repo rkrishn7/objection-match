@@ -7,17 +7,28 @@ test('throws error #1', (t) => {
 });
 
 test('simple query #1', (t) => {
+  const parsed = parser.parse(`eq: ["person.age", 54]`);
+
+  t.deepEqual(parsed, {
+    type: 'comparison',
+    fn: 'eq',
+    args: { identifier: 'person.age', value: 54 },
+  });
+});
+
+test('simple query #2', (t) => {
   const parsed = parser.parse(`
     match_all: {}
   `);
 
   t.deepEqual(parsed, {
-    predicate: 'match_all',
+    type: 'logical',
+    fn: 'match_all',
     constraints: [],
   });
 });
 
-test('simple query #2', (t) => {
+test('simple query #3', (t) => {
   const parsed = parser.parse(`
     match_all: {
       neq: ["shirt.color", "white"]
@@ -25,8 +36,15 @@ test('simple query #2', (t) => {
   `);
 
   t.deepEqual(parsed, {
-    predicate: 'match_all',
-    constraints: [{ op: 'neq', value: { key: 'shirt.color', value: 'white' } }],
+    type: 'logical',
+    fn: 'match_all',
+    constraints: [
+      {
+        type: 'comparison',
+        fn: 'neq',
+        args: { identifier: 'shirt.color', value: 'white' },
+      },
+    ],
   });
 });
 
@@ -43,15 +61,33 @@ test('recursive query #1', (t) => {
   `);
 
   t.deepEqual(parsed, {
-    predicate: 'match_all',
+    type: 'logical',
+    fn: 'match_all',
     constraints: [
-      { op: 'neq', value: { key: 'shirt.color', value: 'white' } },
       {
-        predicate: 'match_any',
+        type: 'comparison',
+        fn: 'neq',
+        args: { identifier: 'shirt.color', value: 'white' },
+      },
+      {
+        type: 'logical',
+        fn: 'match_any',
         constraints: [
-          { op: 'eq', value: { key: 'shirt.owner', value: 'Paul' } },
-          { op: 'eq', value: { key: 'shirt.owner', value: 'Dom' } },
-          { op: 'eq', value: { key: 'shirt.owner', value: 'Phil' } },
+          {
+            type: 'comparison',
+            fn: 'eq',
+            args: { identifier: 'shirt.owner', value: 'Paul' },
+          },
+          {
+            type: 'comparison',
+            fn: 'eq',
+            args: { identifier: 'shirt.owner', value: 'Dom' },
+          },
+          {
+            type: 'comparison',
+            fn: 'eq',
+            args: { identifier: 'shirt.owner', value: 'Phil' },
+          },
         ],
       },
     ],

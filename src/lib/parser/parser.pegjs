@@ -1,35 +1,47 @@
 start
-  = Query
+  = Search
 
-Query
-  = _ predicate:Predicate name_separator begin_object constraints:Constraints end_object _
-  { return { predicate: predicate, constraints: constraints }; }
+/*
+ * A search is defined as a single predicate
+*/
+Search
+  = predicate:Predicate
+  { return predicate; }
+
+Predicate
+  = match:Match
+  { return match; }
+  / comparator:Comparator
+  { return comparator; }
 
 Constraints
   = constraints:(
-    head:Constraint
-    tail:(value_separator c:Constraint { return c; })*
+    head:Predicate
+    tail:(value_separator p:Predicate { return p; })*
     { return [head].concat(tail); }
   )?
   { return constraints !== null ? constraints: []; }
 
-Set
-  = begin_array key:string _ "," _ value:string end_array
-  { return { key: key, value: value }; }
+Match
+  = _ fn:LogicalFunction name_separator begin_object constraints:Constraints end_object
+  { return { type: 'logical', fn: fn, constraints: constraints }; }
 
-Constraint
-  = op:Binop name_separator value:Set
-  { return { op: op, value: value }; }
-  / Query
+Args
+  = begin_array identifier:string _ "," _ value:SerializableValue end_array
+  { return { identifier: identifier, value: value }; }
 
-Binop
+Comparator
+  = _ fn:ComparisonFunction name_separator args:Args _
+  { return { type: 'comparison', fn: fn, args: args }; }
+
+ComparisonFunction
   = "eq"
   / "leq"
   / "geq"
   / "neq"
   { return text(); }
 
-Predicate
+LogicalFunction
   = "match_all"
   / "match_any"
   { return text(); }
@@ -46,9 +58,48 @@ _ "whitespace"
 
 // Values
 
+SerializableValue
+  = false
+  / true
+  / null
+  / string
+  / number
+
 false = "false" { return false; }
 null  = "null"  { return null;  }
 true  = "true"  { return true;  }
+
+// Numbers
+
+number "number"
+  = minus? int frac? exp? { return parseFloat(text()); }
+
+decimal_point
+  = "."
+
+digit1_9
+  = [1-9]
+
+e
+  = [eE]
+
+exp
+  = e (minus / plus)? DIGIT+
+
+frac
+  = decimal_point DIGIT+
+
+int
+  = zero / (digit1_9 DIGIT*)
+
+minus
+  = "-"
+
+plus
+  = "+"
+
+zero
+  = "0"
 
 // Strings
 
