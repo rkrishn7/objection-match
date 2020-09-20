@@ -30,15 +30,15 @@ Entire program:
 const compiler = new Compiler(
   {
     predicate: `
-  match_all: {
-    eq: ["person.name", "Antonio"],
-    neq: ["shirt.color", "white"],
-    match_any: {
-      eq: ["shirt.style", "polo"],
-      eq: ["shirt.style", "dress"]
-    }
-  }
-`,
+      match_all: {
+        eq: ["person.name", "Antonio"],
+        neq: ["shirt.color", "white"],
+        match_any: {
+          eq: ["shirt.style", "polo"],
+          eq: ["shirt.style", "dress"]
+        }
+      }
+    `,
     find: 'shirt.*',
   },
   {
