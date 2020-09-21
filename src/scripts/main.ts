@@ -1,6 +1,7 @@
 // import util from 'util';
 
-import Compiler from '../lib/compiler';
+// import Compiler from '../lib/compiler';
+import SearchEngine from '../lib/searchEngine';
 // import parser from '../lib/parser';
 
 /**
@@ -15,7 +16,7 @@ import Compiler from '../lib/compiler';
  */
 
 function main() {
-  const compiler = new Compiler(
+  /*const compiler = new Compiler(
     {
       predicate: `
       match_all: {
@@ -38,9 +39,23 @@ function main() {
       },
     }
   );
-  const compiled = compiler.compile();
+  const compiled = compiler.compile();*/
 
-  console.log(compiled);
+  const se = new SearchEngine({});
+
+  se.search({
+    predicate: `
+    match_all: {
+      eq: ["children.pets.paws.color", "Antonio"],
+      neq: ["children.family.ethnicity", "white"],
+      match_any: {
+        eq: ["children.pets.coat", "polo"],
+        eq: ["children.name", "dress"]
+      }
+    }
+  `,
+    find: 'world.*',
+  });
 }
 
 main();

@@ -9,7 +9,7 @@ import {
 } from '../../types/search';
 import parser from '../parser';
 
-import CompilerError from './compiler-error';
+import CompilerError from './compilerError';
 
 const ComparisonFunctionMappings: Record<ComparisonFunction, string> = {
   match_all: 'AND',

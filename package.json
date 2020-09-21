@@ -44,7 +44,9 @@
   },
   "dependencies": {
     "@bitauth/libauth": "^1.17.1",
-    "lodash": "^4.17.20"
+    "knex": "^0.21.5",
+    "lodash": "^4.17.20",
+    "objection": "^2.2.3"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
@@ -82,9 +84,9 @@
   "ava": {
     "failFast": true,
     "timeout": "60s",
-		"require": [
-			"ts-node/register"
-		],
+    "require": [
+      "ts-node/register"
+    ],
     "typescript": {
       "rewritePaths": {
         "src/": "build/main/"

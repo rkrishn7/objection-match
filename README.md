@@ -64,3 +64,5 @@ SELECT shirt.* FROM person JOIN shirt ON shirt.owner = person.id  WHERE (person.
 
 - A `Search` consists of a predicate to be matched and a set to find.
 - `RelationMappings` are specified so the compiler knows how to join different tables.
+
+// Embed Objection's DSL for eager-loading relations to support complex expressions
