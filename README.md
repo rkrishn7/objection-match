@@ -65,7 +65,7 @@ const searchResults = await search.search({
 });
 ```
 
-You can also alias columns in the predicate, which makes the predicate much easier to read:
+You can also alias columns in the predicate, which makes it easier to read:
 
 ```tsx
 const searchResults = await search.search({
