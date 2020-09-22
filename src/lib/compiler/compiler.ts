@@ -35,13 +35,13 @@ export default class Compiler {
   }
 
   compile() {
-    const { predicate: input, find } = this.search;
+    const { predicate: input, on } = this.search;
 
     this.ast = parser.parse(input) as Node;
     const compiled = this.processNode(this.ast);
     const relations = this.generateRelations();
 
-    const output = `SELECT ${find} FROM ${relations} WHERE ${compiled}`;
+    const output = `SELECT ${on} FROM ${relations} WHERE ${compiled}`;
     return output;
   }
 

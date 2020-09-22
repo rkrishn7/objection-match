@@ -20,5 +20,6 @@ export type Node = LogicalNode | ComparisonNode;
 
 export interface Search {
   predicate: string;
-  find: string;
+  on: string;
+  limit?: number;
 }

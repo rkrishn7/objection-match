@@ -1,6 +1,4 @@
-import util from 'util';
-
-import { upperFirst } from 'lodash';
+import { trimEnd, upperFirst } from 'lodash';
 import { Model, QueryBuilder } from 'objection';
 
 import {
@@ -13,9 +11,11 @@ import {
 } from '../../types/search';
 import parser from '../parser';
 
+type BuilderFunction = 'andWhere' | 'orWhere' | 'where';
+
 const ComparisonFunctionMappings: Record<
   ComparisonFunction,
-  'andWhere' | 'orWhere'
+  BuilderFunction
 > = {
   match_all: 'andWhere',
   match_any: 'orWhere',
@@ -36,38 +36,28 @@ type RelationNode = { name: string; children: RelationNode[] };
 type RelationTree = RelationNode;
 
 export default class SearchEngine {
-  treeDepth!: number;
-  relationDepth!: number;
-  relationExpression!: string;
   relationTree: RelationTree;
   table!: string;
 
-  constructor(private options: SearchEngineOptions) {
-    this.treeDepth = 0;
-    this.relationDepth = 0;
-    this.options;
-  }
+  constructor(private options: SearchEngineOptions) {}
 
   search(search: Search) {
     const root = parser.parse(search.predicate) as Node;
-    const [table] = search.find.split('.');
-    this.table = table;
-    const model = upperFirst(table);
+    this.table = search.on;
+    const model = upperFirst(trimEnd(this.table, 's'));
 
     // Initialize relation tree w/ root node.
-    this.relationTree = { name: table, children: [] };
+    this.relationTree = { name: this.table, children: [] };
     this.buildRelationTree(root);
     const relationExpression = this.generateRelationExpression(
-      this.relationTree
+      this.relationTree,
+      { root: true }
     );
-    console.log(util.inspect(this.relationTree, false, null, true));
-    console.log(relationExpression);
-    const stuff = this.options.models[model]
-      .query()
-      .withGraphJoined(relationExpression)
-      .modify((builder) => {
-        this.processNode(root, builder, null);
-      });
+    return this.options.models[model].query().modify((builder) => {
+      if (relationExpression) builder.withGraphJoined(relationExpression);
+      if (search.limit) builder.limit(search.limit);
+      this.processNode(root, builder, 'where');
+    });
   }
 
   buildRelationTree(node: Node) {
@@ -89,40 +79,25 @@ export default class SearchEngine {
     }
   }
 
-  generateRelationExpression(node: RelationNode) {
+  generateRelationExpression(node: RelationNode, { root } = { root: false }) {
     if (node.children.length === 0) {
-      return node.name;
+      return root ? null : node.name;
     } else if (node.children.length === 1) {
-      return `${node.name}.${this.generateRelationExpression(
+      return `${!root ? `${node.name}.` : ''}${this.generateRelationExpression(
         node.children[0]
       )}`;
     } else {
-      return `${node.name}.[${node.children
+      return `${!root ? `${node.name}.` : ''}[${node.children
         .map((child) => this.generateRelationExpression(child))
         .join(',')}]`;
     }
   }
 
-  processNode(
-    node: Node,
-    qb: QueryBuilder<Model>,
-    conditionFn: 'andWhere' | 'orWhere' | null,
-    positionRelativeToScope = 0
-  ) {
+  processNode(node: Node, qb: QueryBuilder<Model>, builderFn: BuilderFunction) {
     if (node.type === 'logical') {
-      return this.processLogicalNode(
-        node,
-        qb,
-        conditionFn,
-        positionRelativeToScope
-      );
+      return this.processLogicalNode(node, qb, builderFn);
     } else if (node.type === 'comparison') {
-      return this.processComparisonNode(
-        node,
-        qb,
-        conditionFn,
-        positionRelativeToScope
-      );
+      return this.processComparisonNode(node, qb, builderFn);
     } else {
       throw new Error(
         `Unexpected Error. Expected node type to be one of ["logical", "comparison"]`
@@ -133,32 +108,26 @@ export default class SearchEngine {
   processLogicalNode(
     node: LogicalNode,
     qb: QueryBuilder<Model>,
-    conditionFn: 'andWhere' | 'orWhere',
-    positionRelativeToScope: number
+    builderFn: BuilderFunction
   ) {
     const condition = ComparisonFunctionMappings[node.fn];
-    const builderFn = positionRelativeToScope === 0 ? 'where' : conditionFn;
     qb[builderFn]((builder) => {
-      node.constraints.map((c, i) =>
-        this.processNode(c, builder, condition, i)
-      );
+      node.constraints.map((c) => this.processNode(c, builder, condition));
     });
   }
 
   processComparisonNode(
     node: ComparisonNode,
     qb: QueryBuilder<Model>,
-    conditionFn: 'andWhere' | 'orWhere',
-    positionRelativeToScope: number
+    builderFn: BuilderFunction
   ) {
     const operator = LogicalFunctionMappings[node.fn];
     const tokens = node.args.identifier.split('.');
-    const builderFn = positionRelativeToScope === 0 ? 'where' : conditionFn;
 
     if (tokens.length === 1)
       qb[builderFn](`${this.table}.${tokens[0]}`, operator, node.args.value);
     else {
-      const relations = [this.table];
+      const relations = [];
       for (let i = 0; i < tokens.length - 1; ++i) {
         relations.push(tokens[i]);
       }

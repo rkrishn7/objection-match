@@ -1,86 +1,128 @@
-// run the following command to install:
-// npm install objection knex sqlite3
+import util from 'util';
 
 import Knex from 'knex';
 import { Model } from 'objection';
 
+import SearchEngine from '../lib/searchEngine';
+
 // Initialize knex.
 const knex = Knex({
-  client: 'sqlite3',
+  client: 'mysql',
   useNullAsDefault: true,
   connection: {
-    filename: 'example.db',
+    host: 'localhost',
+    database: 'employees',
+    user: 'root',
+    password: 'password',
+    debug: false,
   },
 });
 
 // Give the knex instance to objection.
 Model.knex(knex);
 
-// Person model.
-class Person extends Model {
+class Department extends Model {
   static get tableName() {
-    return 'persons';
+    return 'departments';
+  }
+}
+
+class Salary extends Model {
+  static get tableName() {
+    return 'salaries';
   }
 
   static get relationMappings() {
     return {
-      children: {
-        relation: Model.HasManyRelation,
-        modelClass: Person,
+      employees: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: Employee,
         join: {
-          from: 'persons.id',
-          to: 'persons.parentId',
+          from: 'salaries.emp_no',
+          to: 'employees.emp_no',
         },
       },
     };
   }
 }
 
-async function createSchema() {
-  if (await knex.schema.hasTable('persons')) {
-    return;
+class Employee extends Model {
+  static get tableName() {
+    return 'employees';
   }
 
-  // Create database schema. You should use knex migration files
-  // to do this. We create it here for simplicity.
-  await knex.schema.createTable('persons', (table) => {
-    table.increments('id').primary();
-    table.integer('parentId').references('persons.id');
-    table.string('firstName');
-  });
+  static get relationMappings() {
+    return {
+      salaries: {
+        relation: Model.HasManyRelation,
+        modelClass: Salary,
+        join: {
+          from: 'employees.emp_no',
+          to: 'salaries.emp_no',
+        },
+      },
+      departments: {
+        relation: Model.HasOneThroughRelation,
+        modelClass: Department,
+        join: {
+          from: 'employees.emp_no',
+          through: {
+            from: 'dept_emp.emp_no',
+            to: 'dept_emp.dept_no',
+          },
+          to: 'departments.dept_no',
+        },
+      },
+    };
+  }
 }
 
 async function main() {
-  // Create some people.
-  const sylvester = await Person.query().insertGraph({
-    firstName: 'Sylvester',
+  const models = {
+    Salary,
+    Employee,
+    Department,
+  };
 
-    children: [
-      {
-        firstName: 'Sage',
-      },
-      {
-        firstName: 'Sophia',
-      },
-    ],
+  const se = new SearchEngine({ models });
+
+  const results = await se.search({
+    predicate: `
+      match_all: {
+        geq: ["salaries.salary", 60000],
+        geq: ["salaries.from_date", "1986-06-26"]
+      }
+    `,
+    on: 'employees',
+    limit: 50,
   });
 
-  console.log('created:', sylvester);
+  //results;
+  console.log(util.inspect(results, false, null, true));
 
-  // Fetch all people named Sylvester and sort them by id.
-  // Load `children` relation eagerly.
-  const sylvesters = await Person.query()
-    .where('firstName', 'Sylvester')
-    .withGraphFetched('children')
-    .orderBy('id');
-
-  console.log('sylvesters:', sylvesters);
+  await knex.destroy();
 }
 
-createSchema()
-  .then(() => main())
-  .then(() => knex.destroy())
-  .catch((err) => {
-    console.error(err);
-    return knex.destroy();
-  });
+/**
+ *
+  // Query employees.
+
+  const employees = await Employee.query()
+    .modify((builder) => {
+      builder.andWhere('salaries.salary', '<=', 60000);
+      builder.andWhere('salaries.from_date', '<=', '1986-06-26');
+      builder.limit(5);
+    })
+    .withGraphJoined('salaries');
+
+  console.log(employees.length);
+  console.log('employees:', util.inspect(employees, false, null, true));
+
+          eq: ["departments.dept_name", "Marketing"],
+        match_any: {
+          eq: ["first_name", "Georgi"],
+          eq: ["first_name", "Bezalel"]
+        }
+ */
+
+main();

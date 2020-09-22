@@ -41,20 +41,16 @@ function main() {
   );
   const compiled = compiler.compile();*/
 
-  const se = new SearchEngine({});
+  const se = new SearchEngine({ models: null });
 
   se.search({
     predicate: `
     match_all: {
-      eq: ["children.pets.paws.color", "Antonio"],
-      neq: ["children.family.ethnicity", "white"],
-      match_any: {
-        eq: ["children.pets.coat", "polo"],
-        eq: ["children.name", "dress"]
-      }
+      geq: ["salaries.salary", 60000],
+      geq: ["salaries.from_date", "1986-06-26"]
     }
   `,
-    find: 'world.*',
+    on: 'employees',
   });
 }
 
