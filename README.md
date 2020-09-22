@@ -30,6 +30,8 @@ match_all: {
 }
 ```
 
+A simple, browser-compatible package that constructs this syntax will be available as well.
+
 ## Compiler
 
 The compiler needs to be initialized so we can parse predicates and get results. It requires a set of Objection models that are used to build the query.
