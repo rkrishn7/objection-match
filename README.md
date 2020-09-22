@@ -4,6 +4,10 @@ Stands for: _Read-Only Relational Query Builder_
 
 A lightweight search DSL built on top of [Objection.js](https://github.com/Vincit/objection.js).
 
+## Why Objection?
+
+Objection already has a powerful, expressive way for loading relations on a model. Its syntax for relation expressions is something I wanted to emulate in this, but also make it easy to add simple parameters to a search. I understand, however, that this limits the library's reach. In the future the plan is to move away from using another ORM.
+
 ## Motivation
 
 I wanted to build a small language that makes it easy to express a search on a database by simply stating a set of constraints. Front-end programmers, for example, often work with requesting, manipulating, and displaying data, but don't necessarily know/care how it is represented. Requesting a set of data that meets certain constraints becomes easy when you can disregrard the underlying query language. **ro.rqb** lets you generate results by passing in a predicate that must resolve to true. It uses Objection to determine the relation between different tables and builds a relation tree that compiles to a [Relation Expression](https://vincit.github.io/objection.js/api/types/#type-relationexpression). Finally, it analyzes the constraints stated in the predicate and generates a database query.
