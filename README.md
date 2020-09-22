@@ -6,7 +6,7 @@ A lightweight search DSL built on top of [Objection.js](https://github.com/Vinci
 
 ## Motivation
 
-I sought out to build a small language that makes it easy to express a search on a database by simply stating a set of constraints. Numerous front-end programmers, for example, often work with requesting, manipulating, and displaying data, but don't necessarily know/care how it is represented. One could just pass the set of constraints along to the server, but this still puts the burden on back-end programmers to build routines that output the corresponding language used to query the database. I saw that for many use-cases, all of this can be abstracted. Lo and behold, **ro.rqb** was born.
+I sought out to build a small language that makes it easy to express a search on a database by simply stating a set of constraints. Numerous front-end programmers, for example, often work with requesting, manipulating, and displaying data, but don't necessarily know/care how it is represented. One could just pass the set of constraints along to the server, but this still puts the burden on back-end programmers to build routines that output the corresponding query dialect. I saw that for many use-cases, all of this can be abstracted. Lo and behold, **ro.rqb** was born.
 
 A common use case for this library is some search that contains a dynamic set of constraints. In a distributed setting, the set of constraints would occur on some client machine and be sent to the server for processing. This is where **ro.rqb** fits in. It provides an easy-to-read format for stating a set of constraints. On the server, the evaluation engine is responsible for parsing the _predicate_, building an Objection query, and returning the results.
 
