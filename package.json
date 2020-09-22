@@ -5,10 +5,12 @@
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/YOUR_GITHUB_USER_NAME/ro.orm",
+  "repository": "https://github.com/rkrishn7/ro.orm",
   "license": "MIT",
   "keywords": [],
   "scripts": {
+    "run:script:obj": "DEBUG=knex:query ts-node ./src/scripts/objection.ts",
+    "run:script:main": "ts-node ./src/scripts/main.ts",
     "build": "run-p build:*",
     "build:main": "tsc -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json",
@@ -18,7 +20,6 @@
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" --list-different",
-    "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
     "test:unit": "nyc --silent ava",
     "check-cli": "run-s test diff-integration-tests check-integration-tests",
     "check-integration-tests": "run-s check-integration-test:*",
@@ -42,11 +43,16 @@
     "node": ">=10"
   },
   "dependencies": {
-    "@bitauth/libauth": "^1.17.1"
+    "@bitauth/libauth": "^1.17.1",
+    "knex": "^0.21.5",
+    "lodash": "^4.17.20",
+    "mysql": "^2.18.1",
+    "objection": "^2.2.3"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/lodash": "^4.14.161",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "ava": "^3.12.1",
@@ -80,6 +86,9 @@
   "ava": {
     "failFast": true,
     "timeout": "60s",
+    "require": [
+      "ts-node/register"
+    ],
     "typescript": {
       "rewritePaths": {
         "src/": "build/main/"
