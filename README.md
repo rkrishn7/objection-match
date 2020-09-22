@@ -71,4 +71,4 @@ The language makes it extremely easy to express nested relations without having 
 select * from `employees` left join `salaries` on `salaries`.`emp_no` = `employees`.`emp_no` where (`salaries`.`salary` >= 60000 and `salaries`.`from_date` >= '1986-06-26') limit 50
 ```
 
-Happy hacking :)
+WIP
