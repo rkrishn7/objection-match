@@ -2,7 +2,7 @@
 
 Stands for: _Read-Only Relational Query Builder_
 
-A lightweight search DSL built on top of [Objection.js](https://github.com/Vincit/objection.js). I chose to add this as another layer to Objection because already it contains an easy, comprehensible DSL for expressing and loading relations.
+A lightweight search DSL built on top of [Objection.js](https://github.com/Vincit/objection.js).
 
 ## Motivation
 
