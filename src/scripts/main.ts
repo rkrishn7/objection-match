@@ -1,7 +1,7 @@
 // import util from 'util';
 
 // import Compiler from '../lib/compiler';
-import SearchEngine from '../lib/searchEngine';
+import SearchEngine from '../lib/compiler';
 // import parser from '../lib/parser';
 
 /**

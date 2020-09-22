@@ -3,7 +3,7 @@ import util from 'util';
 import Knex from 'knex';
 import { Model } from 'objection';
 
-import SearchEngine from '../lib/searchEngine';
+import SearchEngine from '../lib/compiler';
 
 // Initialize knex.
 const knex = Knex({
