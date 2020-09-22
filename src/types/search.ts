@@ -16,10 +16,12 @@ export type ComparisonNode = {
   };
 };
 
+export type AliasMap = Record<string, string>;
 export type Node = LogicalNode | ComparisonNode;
 
 export interface Search {
   predicate: string;
   on: string;
   limit?: number;
+  aliases?: AliasMap;
 }

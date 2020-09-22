@@ -6,9 +6,9 @@ A lightweight search DSL built on top of [Objection.js](https://github.com/Vinci
 
 ## Motivation
 
-I sought out to build a small language that makes it easy to express a search on a database by simply stating a set of constraints. Numerous front-end programmers, for example, often work with requesting, manipulating, and displaying data, but don't necessarily know/care how it is represented. One could just pass the set of constraints along to the server, but this still puts the burden on back-end programmers to build routines that output the corresponding query dialect. I saw that for many use-cases, all of this can be abstracted. Lo and behold, **ro.rqb** was born.
+I wanted to build a small language that makes it easy to express a search on a database by simply stating a set of constraints. Front-end programmers, for example, often work with requesting, manipulating, and displaying data, but don't necessarily know/care how it is represented. Requesting a set of data that meet certain constraints becomes easy when you can disregrard the underlying query language. **ro.rqb** lets you generate results by passing in a predicate that must resolve to true. It uses Objection to determine the relation between different tables and builds a relation tree that compiles to a [Relation Expression](https://vincit.github.io/objection.js/api/types/#type-relationexpression). Finally, it analyzes the constraints stated in the predicate and generates a database query.
 
-A common use case for this library is some search that contains a dynamic set of constraints. In a distributed setting, the set of constraints would occur on some client machine and be sent to the server for processing. This is where **ro.rqb** fits in. It provides an easy-to-read format for stating a set of constraints. On the server, the evaluation engine is responsible for parsing the _predicate_, building an Objection query, and returning the results.
+A common use case for this library could be for a search that contains a dynamic set of constraints. In a distributed setting, the set of constraints would be defined on some client machine and be sent to the server for processing. This is where **ro.rqb** fits in. It provides a minimal, easy-to-read format for stating a set of constraints. On the server, the compiler is responsible for parsing the _predicate_, building an Objection query, and returning the results.
 
 ## Grammar
 
@@ -30,9 +30,9 @@ match_all: {
 }
 ```
 
-## Evaluation Engine
+## Compiler
 
-We must initialize the engine in order to perform searches. It requires a set of Objection models that are queried in searches.
+The compiler needs to be initialized so we can parse predicates and get results. It requires a set of Objection models that are used to build the query.
 
 Example:
 
@@ -43,14 +43,14 @@ const models = {
   Department,
 };
 
-const engine = new EvaluationEngine({ models });
+const search = new Compiler({ models });
 ```
 
 ## Search
 
 A `Search` takes a `predicate`, a table to search `on`, and other properties that build the query, such as `limit`.
 
-Example:
+Example: We need to find an employee who has had a high salary for a long time. The employee's salary, and when it started can be found in the `salaries` table. Objection should already have metadata about our models' relations, so the compiler lets us easily express nested relations by chaining with `.`.
 
 ```tsx
 const searchResults = await search.search({
@@ -65,7 +65,26 @@ const searchResults = await search.search({
 });
 ```
 
-The language makes it extremely easy to express nested relations without having to think about a bunch of joins. For example, we need to find an employees salary which exists in the `salaries` table. `employees` has a FK reference to `salaries`. Since objection should already have metadata that shows our models' relations, we can simply express nested relations by chaining with `.`. Here's the resulting SQL.
+You can also alias columns in the predicate, which makes the predicate much easier to read:
+
+```tsx
+const searchResults = await search.search({
+  predicate: `
+    match_all: {
+      geq: ["salary", 60000],
+      geq: ["salary_start_date", "1986-06-26"]
+    }
+  `,
+  on: 'employees',
+  limit: 50,
+  aliases: {
+    salary: 'salaries.salary',
+    salary_start_date: 'salaries.from_date',
+  },
+});
+```
+
+The language syntax makes it extremely easy to express nested relations without having to think about a bunch of joins. Here's the resulting SQL:
 
 ```SQL
 select * from `employees` left join `salaries` on `salaries`.`emp_no` = `employees`.`emp_no` where (`salaries`.`salary` >= 60000 and `salaries`.`from_date` >= '1986-06-26') limit 50
