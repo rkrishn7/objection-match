@@ -7,8 +7,10 @@ export default class Relation {
   tree!: RelationNode;
   expression!: RelationExpression;
   /**
-   *
-   * @param from the name of the root node in the tree
+   * Constructs a new relation for the given tree
+   * @param from the base table name
+   * @param ast the root node in the tree
+   * @param aliases a set of aliases to be mapped
    */
   constructor(from: string, ast: Node, aliases?: AliasMap) {
     this.tree = { name: from, children: [] };
@@ -43,7 +45,7 @@ export default class Relation {
     }
   }
 
-  buildExpression(node: RelationNode, root = false) {
+  buildExpression(node: RelationNode, root = false): RelationExpression {
     const name = root ? '' : node.name;
     if (node.children.length === 0) {
       return name;
