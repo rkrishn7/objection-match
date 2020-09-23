@@ -7,6 +7,7 @@
 
 import { Model } from 'objection';
 
+import SearchMixin from '../../../lib/plugin';
 import knex from '../db';
 
 Model.knex(knex);
@@ -36,7 +37,7 @@ class Salary extends Model {
   }
 }
 
-class Employee extends Model {
+class Employee extends SearchMixin(Model) {
   static get tableName() {
     return 'employees';
   }

@@ -1,4 +1,3 @@
-import { trimEnd, upperFirst } from 'lodash';
 import { Model, QueryBuilder } from 'objection';
 
 import {
@@ -21,46 +20,45 @@ enum BuilderFunction {
   where = 'where',
 }
 
-const ComparisonFunctionMappings: Record<
-  ComparisonFunction,
-  BuilderFunction
-> = {
+const ComparisonFunctionMappings: Record<LogicalFunction, BuilderFunction> = {
   match_all: BuilderFunction.andWhere,
   match_any: BuilderFunction.orWhere,
 };
 
-const LogicalFunctionMappings: Record<LogicalFunction, string> = {
+const LogicalFunctionMappings: Record<ComparisonFunction, string> = {
   eq: '=',
   neq: '<>',
   leq: '<=',
   geq: '>=',
+  lt: '<',
+  gt: '>',
 };
 
-interface CompilerOptions {
-  models: Record<string, typeof Model>;
-}
-
-export default class SearchEngine {
-  constructor(private options: CompilerOptions) {}
-
-  search(search: Search) {
-    const rootTable = search.on;
+export default class Compiler {
+  /**
+   * Takes a search payload that contains a predicate and additional filters
+   * and returns a set of results.
+   * @param search the search to compile
+   * @param model the model to search on
+   */
+  async compile(search: Search, model: typeof Model) {
+    const table = model.tableName;
     const root = parser.parse(search.predicate) as Node;
-    const modelName = upperFirst(trimEnd(rootTable, 's'));
-    const model = this.options.models[modelName];
 
     // Initialize relation tree w/ root node.
     const { expression: relationExpression } = new Relation(
-      rootTable,
+      table,
       root,
       search.aliases
     );
     Debug.log(`Relation Expression: ${relationExpression}`);
-    return model.query().modify((builder) => {
+    const results = await model.query().modify((builder) => {
       if (relationExpression) builder.withGraphJoined(relationExpression);
       if (search.limit) builder.limit(search.limit);
-      this.processNode(root, builder, BuilderFunction.where, rootTable);
+      this.processNode(root, builder, BuilderFunction.where, table);
     });
+
+    return results;
   }
 
   processNode(

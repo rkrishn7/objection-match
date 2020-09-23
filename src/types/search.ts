@@ -1,15 +1,15 @@
-export type ComparisonFunction = 'match_all' | 'match_any';
-export type LogicalFunction = 'eq' | 'neq' | 'geq' | 'leq';
+export type LogicalFunction = 'match_all' | 'match_any';
+export type ComparisonFunction = 'eq' | 'neq' | 'geq' | 'leq' | 'lt' | 'gt';
 
 export type LogicalNode = {
   type: 'logical';
-  fn: ComparisonFunction;
+  fn: LogicalFunction;
   constraints: (LogicalNode | ComparisonNode)[];
 };
 
 export type ComparisonNode = {
   type: 'comparison';
-  fn: LogicalFunction;
+  fn: ComparisonFunction;
   args: {
     identifier: string;
     value: string | number | boolean | null;
@@ -21,7 +21,6 @@ export type Node = LogicalNode | ComparisonNode;
 
 export interface Search {
   predicate: string;
-  on: string;
   limit?: number;
   aliases?: AliasMap;
 }

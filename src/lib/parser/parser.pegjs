@@ -39,6 +39,8 @@ ComparisonFunction
   / "leq"
   / "geq"
   / "neq"
+  / "lt"
+  / "gt"
   { return text(); }
 
 LogicalFunction
