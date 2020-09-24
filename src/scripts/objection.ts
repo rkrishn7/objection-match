@@ -1,11 +1,9 @@
 import util from 'util';
 
 import knex from '../helpers/setup/db';
-import Models from '../helpers/setup/models';
+import { Employee } from '../helpers/setup/models';
 
 async function main() {
-  const { Employee } = Models;
-
   const results = await Employee.search({
     predicate: `
       match_all: {

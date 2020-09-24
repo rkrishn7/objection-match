@@ -12,13 +12,13 @@ import knex from '../db';
 
 Model.knex(knex);
 
-class Department extends Model {
+export class Department extends Model {
   static get tableName() {
     return 'departments';
   }
 }
 
-class Salary extends Model {
+export class Salary extends Model {
   static get tableName() {
     return 'salaries';
   }
@@ -37,7 +37,7 @@ class Salary extends Model {
   }
 }
 
-class Employee extends SearchMixin(Model) {
+export class Employee extends SearchMixin(Model) {
   static get tableName() {
     return 'employees';
   }
@@ -67,9 +67,3 @@ class Employee extends SearchMixin(Model) {
     };
   }
 }
-
-export default {
-  Department,
-  Employee,
-  Salary,
-};

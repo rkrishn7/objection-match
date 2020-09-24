@@ -8,7 +8,6 @@ import {
   Node,
   Search,
 } from '../../types/search';
-import { Debug } from '../../utils';
 import parser from '../parser';
 
 import CompilerError from './compilerError';
@@ -41,17 +40,15 @@ export default class Compiler {
    * @param search the search to compile
    * @param model the model to search on
    */
-  async compile(search: Search, model: typeof Model) {
+  async compile<M extends typeof Model>(search: Search, model: M) {
     const table = model.tableName;
     const root = parser.parse(search.predicate) as Node;
 
     // Initialize relation tree w/ root node.
     const { expression: relationExpression } = new Relation(
-      table,
       root,
       search.aliases
     );
-    Debug.log(`Relation Expression: ${relationExpression}`);
     const results = await model.query().modify((builder) => {
       if (relationExpression) builder.withGraphJoined(relationExpression);
       if (search.limit) builder.limit(search.limit);

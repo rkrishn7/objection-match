@@ -1,11 +1,9 @@
 import test from 'ava';
 
 import knex from '../../helpers/setup/db';
-import models from '../../helpers/setup/models';
+import { Employee } from '../../helpers/setup/models';
 
 test('simple search #1', async (t) => {
-  const { Employee } = models;
-
   const searchResults = await Employee.search({
     predicate: `
       match_all: {
@@ -23,8 +21,6 @@ test('simple search #1', async (t) => {
 });
 
 test('simple search #2', async (t) => {
-  const { Employee } = models;
-
   const searchResults = await Employee.search({
     predicate: `
       match_all: {
@@ -51,8 +47,6 @@ test.todo('simple search #3');
 test.todo('simple search #4');
 
 test('aliasing #1', async (t) => {
-  const { Employee } = models;
-
   const searchResults = await Employee.search({
     predicate: `
       match_all: {
