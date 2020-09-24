@@ -1,5 +1,6 @@
 import { Model, QueryBuilder } from 'objection';
 
+import { ModelClass } from '../../types/objection';
 import {
   ComparisonFunction,
   ComparisonNode,
@@ -40,7 +41,7 @@ export default class Compiler {
    * @param search the search to compile
    * @param model the model to search on
    */
-  async compile<M extends typeof Model>(search: Search, model: M) {
+  async compile<M extends Model>(search: Search, model: ModelClass<M>) {
     const table = model.tableName;
     const root = parser.parse(search.predicate) as Node;
 
@@ -49,6 +50,7 @@ export default class Compiler {
       root,
       search.aliases
     );
+
     const results = await model.query().modify((builder) => {
       if (relationExpression) builder.withGraphJoined(relationExpression);
       if (search.limit) builder.limit(search.limit);
