@@ -2,7 +2,7 @@
 
 A lightweight search plugin built on top of [Objection.js](https://github.com/Vincit/objection.js).
 
-**objection-match** was created for programs that support dynamic searches. In a distributed setting, a set of constraints for a search may be defined on a client machine and sent to a server for processing. However, the task of parsing the payload, loading relations, and building a query can be cumbersome. By providing a robust and portable query language that can be used to represent a complex search with various constraints, this problem can be abstracted over. Since Objection already has a powerful, expressive way for loading relations, this library simply takes any valid input query and builds an objection query.
+**objection-match** was created for programs that support dynamic searches. In a distributed setting, a set of constraints for a search may be defined on a client machine and sent to a server for processing. However, the task of parsing the payload, loading relations, and building a query can be cumbersome. This library provides a robust and portable query language that can be used to represent a complex search with various constraints, and from it, builds an objection query.
 
 ## Grammar
 
