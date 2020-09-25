@@ -73,7 +73,7 @@ const results = await Employee.search({
     }
   `,
   limit: 5,
-  fields: ['salaries.salary', 'first_name'],
+  fields: ['salary', 'salary_start_date'],
   aliases: {
     salary: 'salaries.salary',
     salary_start_date: 'salaries.from_date',

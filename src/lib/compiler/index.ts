@@ -56,7 +56,8 @@ export default class Compiler {
     const results = await model.query().modify((builder) => {
       if (relationExpression) builder.withGraphJoined(relationExpression);
       if (search.limit) builder.limit(search.limit);
-      if (search.fields) this.processFields(search.fields, builder);
+      if (search.fields)
+        this.processFields(search.fields, builder, search.aliases);
       if (search.orderBy)
         builder.orderBy(
           this.mapAliases([search.orderBy[0]], search.aliases)[0],
