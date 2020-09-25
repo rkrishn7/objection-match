@@ -1,27 +1,34 @@
-# ro.rqb
+# objection-match
 
-Stands for: _Read-Only Relational Query Builder_
+A lightweight search plugin built on top of [Objection.js](https://github.com/Vincit/objection.js).
 
-A lightweight search DSL built on top of [Objection.js](https://github.com/Vincit/objection.js).
-
-## Why Objection?
-
-Objection already has a powerful, expressive way for loading relations on a model. Its syntax for relation expressions is something I wanted to emulate in this, but also make it easy to add simple parameters to a search. I understand, however, that this limits the library's reach. In the future the plan is to move away from using another ORM.
-
-## Motivation
-
-I wanted to build a small language that makes it easy to express a search on a database by simply stating a set of constraints. Front-end programmers, for example, often work with requesting and displaying data, but don't necessarily know/care how it is represented. Requesting a set of data that meets certain constraints becomes easy when you can disregrard the underlying query language. **ro.rqb** lets you generate results by passing in a predicate that must resolve to true. It uses Objection to determine the relation between different tables and builds a relation tree that compiles to a [Relation Expression](https://vincit.github.io/objection.js/api/types/#type-relationexpression). Finally, it analyzes the constraints stated in the predicate and generates a database query.
-
-A common use case for this library could be for a search that contains a dynamic set of constraints. In a distributed setting, the set of constraints would be defined on some client machine and be sent to the server for processing. This is where **ro.rqb** fits in. It provides a minimal, easy-to-read format for stating a set of constraints. On the server, the compiler is responsible for parsing the _predicate_, building an Objection query, and returning the results.
+**objection-match** was created for programs that support dynamic searches. In a distributed setting, a set of constraints for a search may be defined on a client machine and sent to a server for processing. However, the task of parsing the payload, loading relations, and building a query can be cumbersome. By providing a robust and portable query language that can be used to represent a complex search with various constraints, this problem can be abstracted over. Since Objection already has a powerful, expressive way for loading relations, this library simply takes any valid input query and builds an objection query.
 
 ## Grammar
 
-The grammar can be found in `src/lib/parser/parser.pegjs`. It defines the structure of a _predicate_.
+The grammar can be found in [src/lib/parser/parser.pegjs](https://github.com/rkrishn7/objection-match/blob/master/src/lib/parser/parser.pegjs). It defines the structure of the query language.
 
-Briefly, a _predicate_ is a collection of constraints that must be matched.
-The format can be recursive, nesting as many `match_all`'s or `match_any`'s as desired. Primitive constraints that take comparison functions such as `eq`, `neq`, `geq`, `leq` are available as well.
+Briefly, a query consists of _logical_ and _comparison_ nodes. The tables below describe the mapping from each node to their respective function.
 
-Sample predicate:
+| Logical Node | Corresponding Function |
+| ------------ | ---------------------- |
+| match_all    | AND                    |
+| match_any    | OR                     |
+
+<br/>
+
+| Comparison Node | Corresponding Function |
+| --------------- | ---------------------- |
+| eq              | =                      |
+| neq             | !=                     |
+| geq             | >=                     |
+| leq             | <=                     |
+| lt              | <                      |
+| gt              | >                      |
+| like            | LIKE                   |
+| in              | IN                     |
+
+Logical nodes can contain children that include both node types while comparison nodes cannot contain any children. Here's an example:
 
 ```js
 match_all: {
@@ -36,64 +43,37 @@ match_all: {
 
 A simple, browser-compatible package that constructs this syntax will be available as well.
 
-## Compiler
+## Usage
 
-The compiler needs to be initialized so we can parse predicates and get results. It requires a set of Objection models that are used to build the query.
-
-Example:
+The `search()` method is invoked directly on a model class. In order to support this, the plugin mixin needs to be added to any models that wish to use it. Example usage:
 
 ```tsx
-const models = {
-  Salary,
-  Employee,
-  Department,
-};
+import Search from 'objection-match';
 
-const search = new Compiler({ models });
+class Employee extends Search(Model) {
+  ...
+}
 ```
 
-## Search
-
-A `Search` takes a `predicate`, a table to search `on`, and other properties that build the query, such as `limit`.
-
-Example: We need to find an employee who has had a high salary for a long time. The employee's salary, and when it started can be found in the `salaries` table. Objection should already have metadata about our models' relations, so the compiler lets us easily express nested relations by chaining with `.`.
+Now, you can call the `search()` method like so:
 
 ```tsx
-const searchResults = await search.search({
-  predicate: `
-    match_all: {
-      geq: ["salaries.salary", 60000],
-      geq: ["salaries.from_date", "1986-06-26"]
-    }
-  `,
-  on: 'employees',
-  limit: 50,
-});
-```
-
-You can also alias columns in the predicate, which makes it easier to read:
-
-```tsx
-const searchResults = await search.search({
+const results = await Employee.search({
   predicate: `
     match_all: {
       geq: ["salary", 60000],
-      geq: ["salary_start_date", "1986-06-26"]
+      geq: ["salary_start_date", "1986-06-26"],
+      in: ["first_name", "Georgi, Bob"]
     }
   `,
-  on: 'employees',
-  limit: 50,
+  limit: 5,
+  fields: ['salaries.salary', 'first_name'],
   aliases: {
     salary: 'salaries.salary',
     salary_start_date: 'salaries.from_date',
   },
+  orderBy: ['salary', 'desc'],
 });
-```
-
-The language syntax makes it extremely easy to express nested relations without having to think about a bunch of joins. Here's the resulting SQL:
-
-```SQL
-select * from `employees` left join `salaries` on `salaries`.`emp_no` = `employees`.`emp_no` where (`salaries`.`salary` >= 60000 and `salaries`.`from_date` >= '1986-06-26') limit 50
 ```
 
 WIP
