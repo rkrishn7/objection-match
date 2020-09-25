@@ -9,7 +9,7 @@ async function main() {
       match_all: {
         geq: ["salary", 60000],
         geq: ["salary_start_date", "1986-06-26"],
-        like: ["first_name", "%gi"]
+        in: ["first_name", "Georgi, Bob"]
       }
     `,
     limit: 5,

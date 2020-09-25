@@ -42,6 +42,7 @@ ComparisonFunction
   / "lt"
   / "gt"
   / "like"
+  / "in"
   { return text(); }
 
 LogicalFunction

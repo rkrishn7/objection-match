@@ -33,6 +33,7 @@ const ComparisonFunctionMappings: Record<ComparisonFunction, string> = {
   lt: '<',
   gt: '>',
   like: 'like',
+  in: 'in',
 };
 
 export default class Compiler {
@@ -162,21 +163,33 @@ export default class Compiler {
     builderFn: BuilderFunction,
     rootTable: string
   ) {
-    const operator = ComparisonFunctionMappings[node.fn];
-    const tokens = node.args.identifier.split('.');
+    const {
+      fn,
+      args: { identifier, value },
+    } = node;
+    const operator = ComparisonFunctionMappings[fn];
+    const tokens = identifier.split('.');
+    let pathExpression: string;
 
-    if (tokens.length === 1)
-      qb[builderFn](`${rootTable}.${tokens[0]}`, operator, node.args.value);
-    else {
+    if (tokens.length === 1) {
+      pathExpression = `${rootTable}.${tokens[0]}`;
+    } else {
       const relations = [];
       for (let i = 0; i < tokens.length - 1; ++i) {
         relations.push(tokens[i]);
       }
-      qb[builderFn](
-        `${relations.join(':')}.${tokens[tokens.length - 1]}`,
-        operator,
-        node.args.value
-      );
+      pathExpression = `${relations.join(':')}.${tokens[tokens.length - 1]}`;
+    }
+
+    switch (fn) {
+      case 'in':
+        qb[builderFn]((builder) =>
+          builder.whereIn(pathExpression, value.replace(/\s/g, '').split(','))
+        );
+        break;
+      default:
+        qb[builderFn](pathExpression, operator, value);
+        break;
     }
   }
 }

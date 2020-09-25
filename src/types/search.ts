@@ -6,7 +6,8 @@ export type ComparisonFunction =
   | 'leq'
   | 'lt'
   | 'gt'
-  | 'like';
+  | 'like'
+  | 'in';
 
 export type LogicalNode = {
   type: 'logical';
@@ -19,7 +20,7 @@ export type ComparisonNode = {
   fn: ComparisonFunction;
   args: {
     identifier: string;
-    value: string | number | boolean | null;
+    value: string;
   };
 };
 
