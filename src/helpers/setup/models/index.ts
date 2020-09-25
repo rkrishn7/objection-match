@@ -7,19 +7,28 @@
 
 import { Model } from 'objection';
 
+import SearchMixin from '../../../lib/plugin';
 import knex from '../db';
 
 Model.knex(knex);
 
-class Department extends Model {
+export class Department extends Model {
   static get tableName() {
     return 'departments';
   }
+
+  static get idColumn() {
+    return 'dept_no';
+  }
 }
 
-class Salary extends Model {
+export class Salary extends Model {
   static get tableName() {
     return 'salaries';
+  }
+
+  static get idColumn() {
+    return ['emp_no', 'from_date'];
   }
 
   static get relationMappings() {
@@ -36,9 +45,13 @@ class Salary extends Model {
   }
 }
 
-class Employee extends Model {
+export class Employee extends SearchMixin(Model) {
   static get tableName() {
     return 'employees';
+  }
+
+  static get idColumn() {
+    return 'emp_no';
   }
 
   static get relationMappings() {
@@ -66,9 +79,3 @@ class Employee extends Model {
     };
   }
 }
-
-export default {
-  Department,
-  Employee,
-  Salary,
-};

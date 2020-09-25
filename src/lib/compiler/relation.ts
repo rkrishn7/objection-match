@@ -8,14 +8,13 @@ export default class Relation {
   expression!: RelationExpression;
   /**
    * Constructs a new relation for the given tree
-   * @param from the base table name
    * @param ast the root node in the tree
    * @param aliases a set of aliases to be mapped
    */
-  constructor(from: string, ast: Node, aliases?: AliasMap) {
-    this.tree = { name: from, children: [] };
+  constructor(ast: Node, aliases?: AliasMap) {
+    this.tree = { name: '', children: [] };
     this.buildTree(ast, aliases);
-    this.expression = this.buildExpression(this.tree, true);
+    this.expression = this.buildExpression(this.tree);
   }
 
   private buildTree(node: Node, aliases?: AliasMap) {
@@ -45,14 +44,14 @@ export default class Relation {
     }
   }
 
-  buildExpression(node: RelationNode, root = false): RelationExpression {
-    const name = root ? '' : node.name;
-    if (node.children.length === 0) {
+  buildExpression(node: RelationNode): RelationExpression {
+    const { name, children } = node;
+    if (children.length === 0) {
       return name;
-    } else if (node.children.length === 1) {
-      return `${name}${this.buildExpression(node.children[0])}`;
+    } else if (children.length === 1) {
+      return `${name}${name && '.'}${this.buildExpression(children[0])}`;
     } else {
-      return `${name}[${node.children
+      return `${name}${name && '.'}[${children
         .map((child) => this.buildExpression(child))
         .join(',')}]`;
     }
