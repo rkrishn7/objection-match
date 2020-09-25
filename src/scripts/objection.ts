@@ -7,11 +7,18 @@ async function main() {
   const results = await Employee.search({
     predicate: `
       match_all: {
-        geq: ["salaries.salary", 60000],
-        geq: ["salaries.from_date", "1986-06-26"]
+        geq: ["salary", 60000],
+        geq: ["salary_start_date", "1986-06-26"],
+        like: ["first_name", "%gi"]
       }
     `,
-    limit: 50,
+    limit: 5,
+    fields: ['salaries.salary', 'first_name'],
+    aliases: {
+      salary: 'salaries.salary',
+      salary_start_date: 'salaries.from_date',
+    },
+    orderBy: ['salary', 'desc'],
   });
 
   //results;

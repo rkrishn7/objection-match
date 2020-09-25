@@ -20,18 +20,19 @@ enum BuilderFunction {
   where = 'where',
 }
 
-const ComparisonFunctionMappings: Record<LogicalFunction, BuilderFunction> = {
+const LogicalFunctionMappings: Record<LogicalFunction, BuilderFunction> = {
   match_all: BuilderFunction.andWhere,
   match_any: BuilderFunction.orWhere,
 };
 
-const LogicalFunctionMappings: Record<ComparisonFunction, string> = {
+const ComparisonFunctionMappings: Record<ComparisonFunction, string> = {
   eq: '=',
   neq: '<>',
   leq: '<=',
   geq: '>=',
   lt: '<',
   gt: '>',
+  like: 'like',
 };
 
 export default class Compiler {
@@ -54,12 +55,59 @@ export default class Compiler {
     const results = await model.query().modify((builder) => {
       if (relationExpression) builder.withGraphJoined(relationExpression);
       if (search.limit) builder.limit(search.limit);
+      if (search.fields) this.processFields(search.fields, builder);
+      if (search.orderBy)
+        builder.orderBy(
+          this.mapAliases([search.orderBy[0]], search.aliases)[0],
+          search.orderBy[1]
+        );
       this.processNode(root, builder, BuilderFunction.where, table);
     });
 
     return results;
   }
 
+  /**
+   * Maps a set of aliases onto fields
+   * @param fields
+   * @param aliases
+   */
+  mapAliases(fields: string[], aliases?: Search['aliases']) {
+    if (aliases) return fields.map((f) => (f in aliases ? aliases[f] : f));
+    else return fields;
+  }
+
+  /**
+   * Processes 'fields' in the Search payload, and modifies the query builder.
+   * @param fields
+   * @param builder
+   * @param aliases
+   */
+  processFields(
+    fields: string[],
+    builder: QueryBuilder<Model>,
+    aliases?: Search['aliases']
+  ) {
+    this.mapAliases(fields, aliases).forEach((field) => {
+      const parts = field.split('.');
+      const pathExpression = parts.slice(0, parts.length - 1).join('.');
+      const selected = parts[parts.length - 1];
+
+      if (pathExpression)
+        builder.modifyGraph(pathExpression, (builder) =>
+          builder.select(selected)
+        );
+      else builder.select(selected);
+    });
+  }
+
+  /**
+   * Base method for processing a generic node in the predicate tree
+   * @param node
+   * @param qb
+   * @param builderFn
+   * @param rootTable
+   */
   processNode(
     node: Node,
     qb: QueryBuilder<Model>,
@@ -77,13 +125,22 @@ export default class Compiler {
     }
   }
 
+  /**
+   * A logical node is one that uses a logical function (e.g. 'match_all' or 'match_any').
+   * This method modifies the builder using the respective predicate function and recursively
+   * calls processNode() for any child nodes.
+   * @param node
+   * @param qb
+   * @param builderFn
+   * @param rootTable
+   */
   processLogicalNode(
     node: LogicalNode,
     qb: QueryBuilder<Model>,
     builderFn: BuilderFunction,
     rootTable: string
   ) {
-    const condition = ComparisonFunctionMappings[node.fn];
+    const condition = LogicalFunctionMappings[node.fn];
     qb[builderFn]((builder) => {
       node.constraints.map((c) =>
         this.processNode(c, builder, condition, rootTable)
@@ -91,13 +148,21 @@ export default class Compiler {
     });
   }
 
+  /**
+   * A comparison node is on that uses a comparison function (e.g. '<', '>', '=', etc.).
+   * It takes no children so we simply modify the builder.
+   * @param node
+   * @param qb
+   * @param builderFn
+   * @param rootTable
+   */
   processComparisonNode(
     node: ComparisonNode,
     qb: QueryBuilder<Model>,
     builderFn: BuilderFunction,
     rootTable: string
   ) {
-    const operator = LogicalFunctionMappings[node.fn];
+    const operator = ComparisonFunctionMappings[node.fn];
     const tokens = node.args.identifier.split('.');
 
     if (tokens.length === 1)

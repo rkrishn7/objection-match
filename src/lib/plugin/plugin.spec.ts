@@ -35,7 +35,7 @@ test('simple search #2', async (t) => {
     .modify((builder) => {
       builder.where('salaries.salary', '>=', 60000);
       builder.andWhere('salaries.from_date', '>=', '1986-06-26');
-      builder.limit(5);
+      builder.limit(50);
     })
     .withGraphJoined('salaries');
 
@@ -65,7 +65,7 @@ test('aliasing #1', async (t) => {
     .modify((builder) => {
       builder.where('salaries.salary', '>=', 60000);
       builder.andWhere('salaries.from_date', '>=', '1986-06-26');
-      builder.limit(5);
+      builder.limit(50);
     })
     .withGraphJoined('salaries');
 

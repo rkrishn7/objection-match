@@ -41,6 +41,7 @@ ComparisonFunction
   / "neq"
   / "lt"
   / "gt"
+  / "like"
   { return text(); }
 
 LogicalFunction

@@ -1,5 +1,12 @@
 export type LogicalFunction = 'match_all' | 'match_any';
-export type ComparisonFunction = 'eq' | 'neq' | 'geq' | 'leq' | 'lt' | 'gt';
+export type ComparisonFunction =
+  | 'eq'
+  | 'neq'
+  | 'geq'
+  | 'leq'
+  | 'lt'
+  | 'gt'
+  | 'like';
 
 export type LogicalNode = {
   type: 'logical';
@@ -23,4 +30,6 @@ export interface Search {
   predicate: string;
   limit?: number;
   aliases?: AliasMap;
+  fields?: string[];
+  orderBy?: [string, ('asc' | 'desc')?];
 }
