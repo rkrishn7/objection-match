@@ -10,12 +10,16 @@ The grammar can be found in [src/lib/parser/parser.pegjs](https://github.com/rkr
 
 Briefly, a query consists of _logical_ and _comparison_ nodes. The tables below describe the mapping from each node to their respective function.
 
+<table>
+<tr><th>Logical Node Mappings</th><th>Comparison Node Mappings</th></tr>
+<tr><td>
+
 | Logical Node | Corresponding Function |
 | ------------ | ---------------------- |
 | match_all    | AND                    |
 | match_any    | OR                     |
 
-<br/>
+</td><td>
 
 | Comparison Node | Corresponding Function |
 | --------------- | ---------------------- |
@@ -27,6 +31,8 @@ Briefly, a query consists of _logical_ and _comparison_ nodes. The tables below 
 | gt              | >                      |
 | like            | LIKE                   |
 | in              | IN                     |
+
+</td></tr> </table>
 
 Logical nodes can contain children that include both node types while comparison nodes cannot contain any children. Here's an example:
 
