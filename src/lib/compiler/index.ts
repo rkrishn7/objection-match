@@ -1,6 +1,6 @@
-import { trimEnd, upperFirst } from 'lodash';
 import { Model, QueryBuilder } from 'objection';
 
+import { ModelClass } from '../../types/objection';
 import {
   ComparisonFunction,
   ComparisonNode,
@@ -9,7 +9,6 @@ import {
   Node,
   Search,
 } from '../../types/search';
-import { Debug } from '../../utils';
 import parser from '../parser';
 
 import CompilerError from './compilerError';
@@ -21,48 +20,96 @@ enum BuilderFunction {
   where = 'where',
 }
 
-const ComparisonFunctionMappings: Record<
-  ComparisonFunction,
-  BuilderFunction
-> = {
+const LogicalFunctionMappings: Record<LogicalFunction, BuilderFunction> = {
   match_all: BuilderFunction.andWhere,
   match_any: BuilderFunction.orWhere,
 };
 
-const LogicalFunctionMappings: Record<LogicalFunction, string> = {
+const ComparisonFunctionMappings: Record<ComparisonFunction, string> = {
   eq: '=',
   neq: '<>',
   leq: '<=',
   geq: '>=',
+  lt: '<',
+  gt: '>',
+  like: 'like',
+  in: 'in',
 };
 
-interface CompilerOptions {
-  models: Record<string, typeof Model>;
-}
-
-export default class SearchEngine {
-  constructor(private options: CompilerOptions) {}
-
-  search(search: Search) {
-    const rootTable = search.on;
+export default class Compiler {
+  /**
+   * Takes a search payload that contains a predicate and additional filters
+   * and returns a set of results.
+   * @param search the search to compile
+   * @param model the model to search on
+   */
+  async compile<M extends Model>(search: Search, model: ModelClass<M>) {
+    const table = model.tableName;
     const root = parser.parse(search.predicate) as Node;
-    const modelName = upperFirst(trimEnd(rootTable, 's'));
-    const model = this.options.models[modelName];
 
     // Initialize relation tree w/ root node.
     const { expression: relationExpression } = new Relation(
-      rootTable,
       root,
       search.aliases
     );
-    Debug.log(`Relation Expression: ${relationExpression}`);
-    return model.query().modify((builder) => {
+
+    const results = await model.query().modify((builder) => {
       if (relationExpression) builder.withGraphJoined(relationExpression);
       if (search.limit) builder.limit(search.limit);
-      this.processNode(root, builder, BuilderFunction.where, rootTable);
+      if (search.fields)
+        this.processFields(search.fields, builder, search.aliases);
+      if (search.orderBy)
+        builder.orderBy(
+          this.mapAliases([search.orderBy[0]], search.aliases)[0],
+          search.orderBy[1]
+        );
+      this.processNode(root, builder, BuilderFunction.where, table);
+    });
+
+    return results;
+  }
+
+  /**
+   * Maps a set of aliases onto fields
+   * @param fields
+   * @param aliases
+   */
+  mapAliases(fields: string[], aliases?: Search['aliases']) {
+    if (aliases) return fields.map((f) => (f in aliases ? aliases[f] : f));
+    else return fields;
+  }
+
+  /**
+   * Processes 'fields' in the Search payload, and modifies the query builder.
+   * @param fields
+   * @param builder
+   * @param aliases
+   */
+  processFields(
+    fields: string[],
+    builder: QueryBuilder<Model>,
+    aliases?: Search['aliases']
+  ) {
+    this.mapAliases(fields, aliases).forEach((field) => {
+      const parts = field.split('.');
+      const pathExpression = parts.slice(0, parts.length - 1).join('.');
+      const selected = parts[parts.length - 1];
+
+      if (pathExpression)
+        builder.modifyGraph(pathExpression, (builder) =>
+          builder.select(selected)
+        );
+      else builder.select(selected);
     });
   }
 
+  /**
+   * Base method for processing a generic node in the predicate tree
+   * @param node
+   * @param qb
+   * @param builderFn
+   * @param rootTable
+   */
   processNode(
     node: Node,
     qb: QueryBuilder<Model>,
@@ -80,13 +127,22 @@ export default class SearchEngine {
     }
   }
 
+  /**
+   * A logical node is one that uses a logical function (e.g. 'match_all' or 'match_any').
+   * This method modifies the builder using the respective predicate function and recursively
+   * calls processNode() for any child nodes.
+   * @param node
+   * @param qb
+   * @param builderFn
+   * @param rootTable
+   */
   processLogicalNode(
     node: LogicalNode,
     qb: QueryBuilder<Model>,
     builderFn: BuilderFunction,
     rootTable: string
   ) {
-    const condition = ComparisonFunctionMappings[node.fn];
+    const condition = LogicalFunctionMappings[node.fn];
     qb[builderFn]((builder) => {
       node.constraints.map((c) =>
         this.processNode(c, builder, condition, rootTable)
@@ -94,27 +150,48 @@ export default class SearchEngine {
     });
   }
 
+  /**
+   * A comparison node is on that uses a comparison function (e.g. '<', '>', '=', etc.).
+   * It takes no children so we simply modify the builder.
+   * @param node
+   * @param qb
+   * @param builderFn
+   * @param rootTable
+   */
   processComparisonNode(
     node: ComparisonNode,
     qb: QueryBuilder<Model>,
     builderFn: BuilderFunction,
     rootTable: string
   ) {
-    const operator = LogicalFunctionMappings[node.fn];
-    const tokens = node.args.identifier.split('.');
+    const {
+      fn,
+      args: { identifier, value },
+    } = node;
+    const operator = ComparisonFunctionMappings[fn];
+    const tokens = identifier.split('.');
+    let pathExpression: string;
 
-    if (tokens.length === 1)
-      qb[builderFn](`${rootTable}.${tokens[0]}`, operator, node.args.value);
-    else {
+    if (tokens.length === 1) {
+      pathExpression = `${rootTable}.${tokens[0]}`;
+    } else {
       const relations = [];
       for (let i = 0; i < tokens.length - 1; ++i) {
         relations.push(tokens[i]);
       }
-      qb[builderFn](
-        `${relations.join(':')}.${tokens[tokens.length - 1]}`,
-        operator,
-        node.args.value
-      );
+      pathExpression = `${relations.join(':')}.${tokens[tokens.length - 1]}`;
+    }
+
+    // Handle any special functions we wish to support here
+    switch (fn) {
+      case 'in':
+        qb[builderFn]((builder) =>
+          builder.whereIn(pathExpression, value.replace(/\s/g, '').split(','))
+        );
+        break;
+      default:
+        qb[builderFn](pathExpression, operator, value);
+        break;
     }
   }
 }
