@@ -181,6 +181,7 @@ export default class Compiler {
       pathExpression = `${relations.join(':')}.${tokens[tokens.length - 1]}`;
     }
 
+    // Handle any special functions we wish to support here
     switch (fn) {
       case 'in':
         qb[builderFn]((builder) =>
