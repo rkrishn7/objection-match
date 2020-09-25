@@ -82,4 +82,4 @@ const results = await Employee.search({
 });
 ```
 
-WIP
+For more information on 3rd party plugins, check out [Objection's docs](https://vincit.github.io/objection.js/guide/plugins.html#_3rd-party-plugins)
