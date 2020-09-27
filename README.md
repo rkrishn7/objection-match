@@ -56,7 +56,7 @@ The `search()` method is invoked directly on a model class. In order to support 
 ```tsx
 import Search from 'objection-match';
 
-class Employee extends Search(Model) {
+class Employee extends Search({ ...plugin options })(Model) {
   ...
 }
 ```
@@ -81,5 +81,24 @@ const results = await Employee.search({
   orderBy: ['salary', 'desc'],
 });
 ```
+
+`search()` requires a `Search` object as its argument, which has the following properties:
+
+| Property                         | Description                                                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| predicate `string` (required)    | The search string, as described in **Grammar**                                                                       |
+| limit `number`                   | A limit on the number of results                                                                                     |
+| fields `string[]`                | Fields to select (supports aliased fields)                                                                           |
+| aliases `Record<string, string>` | An object that contains mappings from alias name to relation name. These are to be used in `predicate` and `fields`. |
+| orderBy `[string, 'desc'         | 'asc']`                                                                                                              | Used for ordering results. |
+
+## Caching
+
+objection-match can cache the query builder object so it doesn't have to parse and build frequently used searches. To enable caching pass options to the mixin function when initializing the plugin on a model. The options include:
+
+| Property                           | Description                |
+| ---------------------------------- | -------------------------- |
+| enableCache `boolean`              | Turns on caching           |
+| cacheMaxSize `number` (default 10) | Sets the size of the cache |
 
 For more information on third-party plugins, check out [Objection's docs](https://vincit.github.io/objection.js/guide/plugins.html#_3rd-party-plugins).
