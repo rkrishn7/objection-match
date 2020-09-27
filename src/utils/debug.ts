@@ -2,11 +2,11 @@ import { Colors } from './colors';
 
 const log = (message: string, color: Colors = null) => {
   if (
-    process.env.DEBUG === 'ro.rqb:debug' &&
+    process.env.DEBUG === 'objection-match:debug' &&
     typeof console !== 'undefined' &&
     typeof console.log === 'function'
   ) {
-    console.log(color, message);
+    console.log(color, '[objection-match]:', message);
   }
 };
 

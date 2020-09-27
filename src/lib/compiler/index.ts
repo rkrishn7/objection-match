@@ -43,7 +43,7 @@ export default class Compiler {
    * @param search the search to compile
    * @param model the model to search on
    */
-  async compile<M extends Model>(search: Search, model: ModelClass<M>) {
+  compile<M extends Model>(search: Search, model: ModelClass<M>) {
     const table = model.tableName;
     const root = parser.parse(search.predicate) as Node;
 
@@ -53,7 +53,7 @@ export default class Compiler {
       search.aliases
     );
 
-    const results = await model.query().modify((builder) => {
+    return model.query().modify((builder) => {
       if (relationExpression) builder.withGraphJoined(relationExpression);
       if (search.limit) builder.limit(search.limit);
       if (search.fields)
@@ -65,8 +65,6 @@ export default class Compiler {
         );
       this.processNode(root, builder, BuilderFunction.where, table);
     });
-
-    return results;
   }
 
   /**

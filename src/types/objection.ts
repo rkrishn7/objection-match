@@ -8,4 +8,6 @@ export interface ModelClass<M extends Model> {
   new (): M;
   tableName: string;
   query(): QueryBuilder<M>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fromDatabaseJson<M>(this: { new (): M }, json: any): M;
 }
