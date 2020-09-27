@@ -6,7 +6,7 @@ A lightweight search plugin built on top of [Objection.js](https://github.com/Vi
 
 ## Installation
 
-```
+```sh
 # NPM
 npm install --save objection-match
 
