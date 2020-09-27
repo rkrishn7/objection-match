@@ -47,7 +47,6 @@ export class Salary extends Model {
 
 export class Employee extends SearchMixin({
   enableCache: true,
-  knexInstance: knex,
 })(Model) {
   static get tableName() {
     return 'employees';

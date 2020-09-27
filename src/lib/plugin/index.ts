@@ -1,6 +1,5 @@
-import Knex, { SqlNative } from 'knex';
 import LruCache from 'lru-cache';
-import { Model } from 'objection';
+import { Model, QueryBuilder } from 'objection';
 
 import { ModelClass } from '../../types/objection';
 import { Search } from '../../types/search';
@@ -10,7 +9,6 @@ import Compiler from '../compiler';
 export interface MatchPluginOptions {
   enableCache?: boolean;
   cacheMaxSize?: number;
-  knexInstance?: Knex;
 }
 
 export interface ExtendedProperties {
@@ -19,16 +17,15 @@ export interface ExtendedProperties {
 
 const DefaultPluginOptions: MatchPluginOptions = {
   enableCache: false,
-  cacheMaxSize: 1000,
-  knexInstance: null,
+  cacheMaxSize: 20,
 };
 
 export default ({
   enableCache,
   cacheMaxSize,
-  knexInstance,
 }: MatchPluginOptions = DefaultPluginOptions) => {
-  let cache: LruCache<string, SqlNative>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let cache: LruCache<string, any>;
   if (enableCache) {
     cache = new LruCache({
       max: cacheMaxSize,
@@ -45,30 +42,24 @@ export default ({
 
         if (enableCache) {
           const key = JSON.stringify(search),
-            val = cache.get(key);
+            cached = cache.get(key);
 
-          if (val) {
-            Debug.success(`Using cached query: ${val.sql}`);
-            const data = await knexInstance?.raw(val.sql, val.bindings);
-            return (
-              data[0]?.map((row) =>
-                (this as ModelClass<M>).fromDatabaseJson(row)
-              ) || []
-            );
+          if (cached) {
+            Debug.success(`Using cached query builder`);
+            return cached as QueryBuilder<M, M[]>;
           }
 
-          const results = compiler.compile(search, this as ModelClass<M>);
-          const native = results.toKnexQuery().toSQL().toNative();
-          if (cache.set(key, native)) {
-            Debug.success(`Succesfully cached query: ${native.sql}`);
+          const builder = compiler.compile(search, this as ModelClass<M>);
+          if (cache.set(key, builder)) {
+            Debug.success(`Succesfully cached query builder`);
           } else {
-            Debug.error(`Unable to cache query: ${native.sql}`);
+            Debug.error(`Unable to cache query builder`);
           }
-          return results;
+          return builder;
         }
 
-        const results = compiler.compile(search, this as ModelClass<M>);
-        return results;
+        const builder = compiler.compile(search, this as ModelClass<M>);
+        return builder;
       }
     };
   };
