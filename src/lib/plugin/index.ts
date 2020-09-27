@@ -49,8 +49,12 @@ export default ({
 
           if (val) {
             Debug.success(`Using cached query: ${val.sql}`);
-            const data = await knexInstance.raw(val.sql, val.bindings);
-            return data.map((row) => ModelClass.fromDatabaseJson(row));
+            const data = await knexInstance?.raw(val.sql, val.bindings);
+            return (
+              data[0]?.map((row) =>
+                (this as ModelClass<M>).fromDatabaseJson(row)
+              ) || []
+            );
           }
 
           const results = compiler.compile(search, this as ModelClass<M>);
