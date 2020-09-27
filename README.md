@@ -104,6 +104,8 @@ const results = await Employee.search({
 | aliases `Record<string, string>`   | An object that contains mappings from alias name to relation name. These are to be used in `predicate` and `fields`. |
 | orderBy `[string, 'desc' / 'asc']` | Used for ordering results.                                                                                           |
 
+For more information on third-party plugins, check out [Objection's docs](https://vincit.github.io/objection.js/guide/plugins.html#_3rd-party-plugins). You might also be interested in the [API Reference](https://rkrishn7.github.io/objection-match/).
+
 ## Caching
 
 **objection-match** can cache the query builder object so it doesn't have to parse and build frequently used searches. To enable caching, pass options to the mixin function when initializing the plugin on a model. The options include:

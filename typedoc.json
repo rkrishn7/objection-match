@@ -1,0 +1,6 @@
+{
+  "inputFiles": ["src/lib", "src/types"],
+  "mode": "file",
+  "out": "build/docs",
+  "exclude": ["**/*.spec.ts", "src/lib/parser/**/*"]
+}
