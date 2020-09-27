@@ -7,7 +7,7 @@ A lightweight search plugin built on top of [Objection.js](https://github.com/Vi
 ## Installation
 
 ```sh
-# NPM
+# npm
 npm install --save objection-match
 
 # yarn
@@ -104,7 +104,7 @@ const results = await Employee.search({
 
 ## Caching
 
-objection-match can cache the query builder object so it doesn't have to parse and build frequently used searches. To enable caching pass options to the mixin function when initializing the plugin on a model. The options include:
+**objection-match** can cache the query builder object so it doesn't have to parse and build frequently used searches. To enable caching pass options to the mixin function when initializing the plugin on a model. The options include:
 
 | Property                           | Description                |
 | ---------------------------------- | -------------------------- |
