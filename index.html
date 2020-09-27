@@ -1,0 +1,348 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>objection-match</title>
+	<meta name="description" content="Documentation for objection-match">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">objection-match</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1>objection-match</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#objection-match" id="objection-match" style="color: inherit; text-decoration: none;">
+					<h1>objection-match</h1>
+				</a>
+				<p><a href="https://badge.fury.io/js/objection-match"><img src="https://badge.fury.io/js/objection-match.svg" alt="npm version"></a></p>
+				<p>A lightweight search plugin built on top of <a href="https://github.com/Vincit/objection.js">Objection.js</a>.</p>
+				<p><strong>objection-match</strong> was created for programs that wish to easily support dynamic searches. In a distributed setting, a set of constraints for a search may be defined on a client machine and sent to a server for processing. However, the task of parsing the payload, loading relations, and building a query can be cumbersome. This library provides a robust and portable query language that can be used to represent a complex search with various constraints, and from it, build an Objection query.</p>
+				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+					<h2>Installation</h2>
+				</a>
+				<pre><code class="language-sh"><span class="hljs-comment"># npm</span>
+npm install --save objection-match
+
+<span class="hljs-comment"># yarn</span>
+yarn add objection-match</code></pre>
+				<a href="#grammar" id="grammar" style="color: inherit; text-decoration: none;">
+					<h2>Grammar</h2>
+				</a>
+				<p>The grammar can be found in <a href="https://github.com/rkrishn7/objection-match/blob/master/src/lib/parser/parser.pegjs">src/lib/parser/parser.pegjs</a>. It defines the structure of the query language.</p>
+				<p>Briefly, a query consists of <em>logical</em> and <em>comparison</em> nodes. The tables below describe the mapping from each node to their respective function.</p>
+				<table>
+					<tr><th>Logical Node Mappings</th><th>Comparison Node Mappings</th></tr>
+					<tr><td>
+							<table>
+								<thead>
+									<tr>
+										<th>Logical Node</th>
+										<th>Corresponding Function</th>
+									</tr>
+								</thead>
+								<tbody><tr>
+										<td>match_all</td>
+										<td>AND</td>
+									</tr>
+									<tr>
+										<td>match_any</td>
+										<td>OR</td>
+									</tr>
+							</tbody></table>
+							</td><td>
+							<table>
+								<thead>
+									<tr>
+										<th>Comparison Node</th>
+										<th>Corresponding Function</th>
+									</tr>
+								</thead>
+								<tbody><tr>
+										<td>eq</td>
+										<td>=</td>
+									</tr>
+									<tr>
+										<td>neq</td>
+										<td>!=</td>
+									</tr>
+									<tr>
+										<td>geq</td>
+										<td>&gt;=</td>
+									</tr>
+									<tr>
+										<td>leq</td>
+										<td>&lt;=</td>
+									</tr>
+									<tr>
+										<td>lt</td>
+										<td>&lt;</td>
+									</tr>
+									<tr>
+										<td>gt</td>
+										<td>&gt;</td>
+									</tr>
+									<tr>
+										<td>like</td>
+										<td>LIKE</td>
+									</tr>
+									<tr>
+										<td>in</td>
+										<td>IN</td>
+									</tr>
+							</tbody></table>
+				</td></tr> </table>
+				<p>Logical nodes can contain children that include both node types while comparison nodes cannot contain any children. Here&#39;s an example:</p>
+				<pre><code class="language-js">match_all: {
+  <span class="hljs-attr">eq</span>: [<span class="hljs-string">&quot;person.name&quot;</span>, <span class="hljs-string">&quot;Antonio&quot;</span>],
+  <span class="hljs-attr">neq</span>: [<span class="hljs-string">&quot;shirt.color&quot;</span>, <span class="hljs-string">&quot;white&quot;</span>],
+  <span class="hljs-attr">match_any</span>: {
+    <span class="hljs-attr">eq</span>: [<span class="hljs-string">&quot;shirt.style&quot;</span>, <span class="hljs-string">&quot;polo&quot;</span>],
+    <span class="hljs-attr">eq</span>: [<span class="hljs-string">&quot;shirt.style&quot;</span>, <span class="hljs-string">&quot;dress&quot;</span>]
+  }
+}</code></pre>
+				<p>A simple, browser-compatible package that constructs this syntax will be available as well.</p>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h2>Usage</h2>
+				</a>
+				<p>The <code>search()</code> method is invoked directly on a model class. In order to support this, the plugin mixin needs to be added to any models that wish to use it. Example usage:</p>
+				<pre><code class="language-tsx">import Search from &#39;objection-match&#39;;
+
+class Employee extends Search({ ...plugin options })(Model) {
+  ...
+}</code></pre>
+				<p>Now, you can call the <code>search()</code> method like so:</p>
+				<pre><code class="language-tsx">const results = await Employee.search({
+  predicate: `
+    match_all: {
+      geq: [&quot;salary&quot;, 60000],
+      geq: [&quot;salary_start_date&quot;, &quot;1986-06-26&quot;],
+      in: [&quot;first_name&quot;, &quot;Georgi, Bob&quot;]
+    }
+  `,
+  limit: 5,
+  fields: [&#39;salary&#39;, &#39;salary_start_date&#39;],
+  aliases: {
+    salary: &#39;salaries.salary&#39;,
+    salary_start_date: &#39;salaries.from_date&#39;,
+  },
+  orderBy: [&#39;salary&#39;, &#39;desc&#39;],
+});</code></pre>
+				<p><code>search()</code> requires a <code>Search</code> object as its argument, which has the following properties:</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Property</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody><tr>
+							<td>predicate <code>string</code> (required)</td>
+							<td>The search string, as described in <strong>Grammar</strong></td>
+						</tr>
+						<tr>
+							<td>limit <code>number</code></td>
+							<td>A limit on the number of results</td>
+						</tr>
+						<tr>
+							<td>fields <code>string[]</code></td>
+							<td>Fields to select (supports aliased fields)</td>
+						</tr>
+						<tr>
+							<td>aliases <code>Record&lt;string, string&gt;</code></td>
+							<td>An object that contains mappings from alias name to relation name. These are to be used in <code>predicate</code> and <code>fields</code>.</td>
+						</tr>
+						<tr>
+							<td>orderBy <code>[string, &#39;desc&#39; / &#39;asc&#39;]</code></td>
+							<td>Used for ordering results.</td>
+						</tr>
+				</tbody></table>
+				<a href="#caching" id="caching" style="color: inherit; text-decoration: none;">
+					<h2>Caching</h2>
+				</a>
+				<p><strong>objection-match</strong> can cache the query builder object so it doesn&#39;t have to parse and build frequently used searches. To enable caching, pass options to the mixin function when initializing the plugin on a model. The options include:</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Property</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody><tr>
+							<td>enableCache <code>boolean</code></td>
+							<td>Turns on caching</td>
+						</tr>
+						<tr>
+							<td>cacheMaxSize <code>number</code> (default 10)</td>
+							<td>Sets the size of the cache</td>
+						</tr>
+				</tbody></table>
+				<p>For more information on third-party plugins, check out <a href="https://vincit.github.io/objection.js/guide/plugins.html#_3rd-party-plugins">Objection&#39;s docs</a>.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-enum">
+						<a href="enums/builderfunction.html" class="tsd-kind-icon">Builder<wbr>Function</a>
+					</li>
+					<li class=" tsd-kind-enum tsd-is-external">
+						<a href="enums/colors.html" class="tsd-kind-icon">Colors</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/compiler.html" class="tsd-kind-icon">Compiler</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/compilererror.html" class="tsd-kind-icon">Compiler<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/debug.html" class="tsd-kind-icon">Debug</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/relation.html" class="tsd-kind-icon">Relation</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/extendedproperties.html" class="tsd-kind-icon">Extended<wbr>Properties</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/matchpluginoptions.html" class="tsd-kind-icon">Match<wbr>Plugin<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/modelclass.html" class="tsd-kind-icon">Model<wbr>Class</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/search.html" class="tsd-kind-icon">Search</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#aliasmap" class="tsd-kind-icon">Alias<wbr>Map</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#comparisonfunction" class="tsd-kind-icon">Comparison<wbr>Function</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#comparisonnode" class="tsd-kind-icon">Comparison<wbr>Node</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#logicalfunction" class="tsd-kind-icon">Logical<wbr>Function</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#logicalnode" class="tsd-kind-icon">Logical<wbr>Node</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#node" class="tsd-kind-icon">Node</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#relationexpression" class="tsd-kind-icon">Relation<wbr>Expression</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#relationnode" class="tsd-kind-icon">Relation<wbr>Node</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-external">
+						<a href="globals.html#log" class="tsd-kind-icon">log</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#comparisonfunctionmappings" class="tsd-kind-icon">Comparison<wbr>Function<wbr>Mappings</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#defaultpluginoptions" class="tsd-kind-icon">Default<wbr>Plugin<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#logicalfunctionmappings" class="tsd-kind-icon">Logical<wbr>Function<wbr>Mappings</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
