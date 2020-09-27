@@ -1,5 +1,7 @@
 # objection-match
 
+[![npm version](https://badge.fury.io/js/objection-match.svg)](https://badge.fury.io/js/objection-match)
+
 A lightweight search plugin built on top of [Objection.js](https://github.com/Vincit/objection.js).
 
 **objection-match** was created for programs that wish to easily support dynamic searches. In a distributed setting, a set of constraints for a search may be defined on a client machine and sent to a server for processing. However, the task of parsing the payload, loading relations, and building a query can be cumbersome. This library provides a robust and portable query language that can be used to represent a complex search with various constraints, and from it, build an Objection query.
