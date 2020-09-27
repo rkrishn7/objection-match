@@ -4,6 +4,16 @@ A lightweight search plugin built on top of [Objection.js](https://github.com/Vi
 
 **objection-match** was created for programs that wish to easily support dynamic searches. In a distributed setting, a set of constraints for a search may be defined on a client machine and sent to a server for processing. However, the task of parsing the payload, loading relations, and building a query can be cumbersome. This library provides a robust and portable query language that can be used to represent a complex search with various constraints, and from it, build an Objection query.
 
+## Installation
+
+```
+# NPM
+npm install --save objection-match
+
+# yarn
+yarn add objection-match
+```
+
 ## Grammar
 
 The grammar can be found in [src/lib/parser/parser.pegjs](https://github.com/rkrishn7/objection-match/blob/master/src/lib/parser/parser.pegjs). It defines the structure of the query language.
