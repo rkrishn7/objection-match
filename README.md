@@ -84,13 +84,13 @@ const results = await Employee.search({
 
 `search()` requires a `Search` object as its argument, which has the following properties:
 
-| Property                         | Description                                                                                                          |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| predicate `string` (required)    | The search string, as described in **Grammar**                                                                       |
-| limit `number`                   | A limit on the number of results                                                                                     |
-| fields `string[]`                | Fields to select (supports aliased fields)                                                                           |
-| aliases `Record<string, string>` | An object that contains mappings from alias name to relation name. These are to be used in `predicate` and `fields`. |
-| orderBy `[string, 'desc'         | 'asc']`                                                                                                              | Used for ordering results. |
+| Property                           | Description                                                                                                          |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| predicate `string` (required)      | The search string, as described in **Grammar**                                                                       |
+| limit `number`                     | A limit on the number of results                                                                                     |
+| fields `string[]`                  | Fields to select (supports aliased fields)                                                                           |
+| aliases `Record<string, string>`   | An object that contains mappings from alias name to relation name. These are to be used in `predicate` and `fields`. |
+| orderBy `[string, 'desc' / 'asc']` | Used for ordering results.                                                                                           |
 
 ## Caching
 
